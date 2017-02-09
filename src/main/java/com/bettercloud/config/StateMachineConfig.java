@@ -5,10 +5,8 @@ import com.bettercloud.statemachine.States;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.statemachine.StateMachine;
+import org.springframework.context.annotation.Scope;
 import org.springframework.statemachine.config.EnableStateMachine;
-import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
-import org.springframework.statemachine.config.StateMachineBuilder;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
@@ -24,6 +22,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Configuration
+@Scope("prototype")
 @EnableStateMachine
 public class StateMachineConfig extends StateMachineConfigurerAdapter<String, String> {
 
@@ -32,7 +31,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<String, St
             throws Exception {
         config
                 .withConfiguration()
-                .autoStartup(true)
+                .autoStartup(false)
                 .listener(listener());
     }
 
