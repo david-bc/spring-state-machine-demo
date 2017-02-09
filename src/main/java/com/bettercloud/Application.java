@@ -1,10 +1,12 @@
 package com.bettercloud;
 
+import com.bettercloud.services.ExecutionService;
 import com.bettercloud.services.StateMachineProviderService;
 import com.bettercloud.statemachine.Events;
 import com.bettercloud.statemachine.States;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,7 +17,9 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.EnableStateMachine;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.bettercloud.statemachine.States.COMPLETE;
@@ -37,11 +41,10 @@ public class Application {
     private final AtomicBoolean loopRunComplete = new AtomicBoolean(false);
 
     @Bean
-    public CommandLineRunner success(StateMachineProviderService stateMachineProviderService) {
+    public CommandLineRunner success(ExecutionService executionService) {
         return (args) -> {
-            StateMachine<String, String> stateMachine = stateMachineProviderService.get();
-
-            stateMachine.start();
+            HashMap<String, Object> params = Maps.newHashMap();
+            StateMachine<String, String> stateMachine = executionService.accept(params);
 
             Thread.sleep(500L);
 
@@ -60,12 +63,11 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner fail(StateMachineProviderService stateMachineProviderService) {
+    public CommandLineRunner fail(ExecutionService executionService) {
         return (args) -> {
-            StateMachine<String, String> stateMachine = stateMachineProviderService.get();
-            stateMachine.getExtendedState().getVariables().put("fail", true);
-
-            stateMachine.start();
+            HashMap<String, Object> params = Maps.newHashMap();
+            params.put("fail", true);
+            StateMachine<String, String> stateMachine = executionService.accept(params);
 
             Thread.sleep(500L);
 
@@ -84,11 +86,12 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner loop(StateMachineProviderService stateMachineProviderService) {
+    public CommandLineRunner loop(ExecutionService executionService) {
         return (args) -> {
-            StateMachine<String, String> stateMachine = stateMachineProviderService.get();
             int loopCount = 5;
-            stateMachine.getExtendedState().getVariables().put("loop", loopCount);
+            HashMap<String, Object> params = Maps.newHashMap();
+            params.put("loop", loopCount);
+            StateMachine<String, String> stateMachine = executionService.accept(params);
 
             stateMachine.start();
 

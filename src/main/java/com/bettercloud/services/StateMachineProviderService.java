@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public interface StateMachineProviderService {
 
-    StateMachine<String, String> get() throws Exception;
+    StateMachine<String, String> get();
 
-    StateMachine<String, String> get(UUID id) throws Exception;
+    StateMachine<String, String> get(UUID id);
 }
