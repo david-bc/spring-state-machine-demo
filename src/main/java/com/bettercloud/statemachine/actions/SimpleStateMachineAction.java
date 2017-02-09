@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  */
 @Slf4j
 @Data
-public abstract class AbstractStateMachineAction implements StateMachineAction {
+public abstract class SimpleStateMachineAction implements StateMachineAction {
 
     private final String state;
     private final List<StateMachineTransition> transitions;

@@ -3,16 +3,14 @@ package com.bettercloud.services;
 import com.bettercloud.statemachine.StateMachineTransition;
 import com.bettercloud.statemachine.States;
 import com.bettercloud.statemachine.actions.StateMachineAction;
+import com.bettercloud.statemachine.actions.impl.BasicPersistanceAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.statemachine.StateMachine;
-import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.StateMachineBuilder;
 import org.springframework.statemachine.config.configurers.ExternalTransitionConfigurer;
 import org.springframework.statemachine.config.configurers.StateConfigurer;
 import org.springframework.statemachine.listener.StateMachineListener;
-import org.springframework.statemachine.monitor.StateMachineMonitor;
-import org.springframework.statemachine.transition.Transition;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,18 +25,17 @@ import java.util.UUID;
 public class DefaultStateMachineProviderService implements StateMachineProviderService {
 
     private final StateMachineListener<String, String> stateMachineListener;
-    private final StateMachineMonitor<String, String> stateMachineMonitor;
     private final BeanFactory beanFactory;
+    private final BasicPersistanceAction basicPersistanceAction;
 
     private final List<StateMachineAction> stateMachineActionBeans;
 
     public DefaultStateMachineProviderService(StateMachineListener<String, String> stateMachineListener,
-                                              StateMachineMonitor<String, String> stateMachineMonitor,
                                               BeanFactory beanFactory,
-                                              List<StateMachineAction> stateMachineActionBeans) {
+                                              BasicPersistanceAction basicPersistanceAction, List<StateMachineAction> stateMachineActionBeans) {
         this.stateMachineListener = stateMachineListener;
-        this.stateMachineMonitor = stateMachineMonitor;
         this.beanFactory = beanFactory;
+        this.basicPersistanceAction = basicPersistanceAction;
         this.stateMachineActionBeans = stateMachineActionBeans;
     }
 
@@ -53,9 +50,6 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
 
         try {
             builder.configureConfiguration()
-                    .withMonitoring()
-                        .monitor(stateMachineMonitor)
-                    .and()
                     .withConfiguration()
                     .autoStartup(false)
                     .listener(stateMachineListener)
@@ -71,6 +65,7 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
 
             for (StateMachineAction action : stateMachineActionBeans) {
                 stateConfigurer = stateConfigurer.stateDo(action.getState(), action);
+                log.info("Registering Action: {} => {}", action.getState(), action.getClass());
                 for (StateMachineTransition transition : action.getTransitions()) {
                     transitionConfigurer
                             .and()
