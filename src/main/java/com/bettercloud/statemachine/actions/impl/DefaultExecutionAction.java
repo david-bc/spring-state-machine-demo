@@ -9,10 +9,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.bettercloud.statemachine.Events.ERROR;
 import static com.bettercloud.statemachine.Events.FINISHED;
+import static com.bettercloud.statemachine.Events.REPEAT;
 import static com.bettercloud.statemachine.States.COMPLETE;
+import static com.bettercloud.statemachine.States.ENRICH;
 import static com.bettercloud.statemachine.States.EXECUTE;
 
 /**
@@ -23,7 +26,8 @@ public class DefaultExecutionAction extends AbstractStateMachineAction implement
 
     public static final List<StateMachineTransition> TRANSITIONS = Collections.unmodifiableList(Lists.newArrayList(
             StateMachineTransition.builder().state(EXECUTE).target(COMPLETE).event(FINISHED).build(),
-            StateMachineTransition.builder().state(EXECUTE).target(COMPLETE).event(ERROR).build()
+            StateMachineTransition.builder().state(EXECUTE).target(COMPLETE).event(ERROR).build(),
+            StateMachineTransition.builder().state(EXECUTE).target(ENRICH).event(REPEAT).build()
     ));
 
     public DefaultExecutionAction() {
@@ -32,6 +36,14 @@ public class DefaultExecutionAction extends AbstractStateMachineAction implement
 
     @Override
     protected void safeExecute(StateContext<String, String> context) {
-        context.getStateMachine().sendEvent(FINISHED);
+        Integer loop = Optional.ofNullable(context.getExtendedState().get("loop", Integer.class)).orElse(0);
+        String event = FINISHED;
+        if (loop > 0) {
+            context.getExtendedState().getVariables().put("loop", loop - 1);
+            Integer currCount = Optional.ofNullable(context.getExtendedState().get("loopCount", Integer.class)).orElse(0);
+            context.getExtendedState().getVariables().put("loopCount", currCount + 1);
+            event = REPEAT;
+        }
+        context.getStateMachine().sendEvent(event);
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.bettercloud.statemachine.Events.ERROR;
 import static com.bettercloud.statemachine.Events.FINISHED;
@@ -34,6 +35,8 @@ public class DefaultEnrichmentAction extends AbstractStateMachineAction implemen
 
     @Override
     protected void safeExecute(StateContext<String, String> context) {
-        context.getStateMachine().sendEvent(FINISHED);
+        Boolean fail = Optional.ofNullable(context.getExtendedState().get("fail", Boolean.class)).orElse(false);
+        String event = fail ? ERROR : FINISHED;
+        context.getStateMachine().sendEvent(event);
     }
 }

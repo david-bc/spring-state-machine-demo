@@ -66,13 +66,8 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
         ExternalTransitionConfigurer<String, String> transitionConfigurer = builder.configureTransitions().withExternal();
 
         for (StateMachineAction action : stateMachineActionBeans) {
-            log.info("Registering Action: {} => {}", action.getState(), action.getClass());
             stateConfigurer = stateConfigurer.stateDo(action.getState(), action);
             for (StateMachineTransition transition : action.getTransitions()) {
-                log.info("Registering Transition: {} on {} => {}",
-                        transition.getState(),
-                        transition.getEvent(),
-                        transition.getTarget());
                 transitionConfigurer
                         .and()
                         .withExternal()
@@ -81,9 +76,6 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
         }
 
         StateMachine<String, String> sm = builder.build();
-
-        sm.getTransitions().stream()
-                .forEach(t -> log.info("Found Transition: {} on {} => {}", t.getSource().getId(), t.getTrigger().getEvent(), t.getTarget().getId()));
 
         return sm;
     }

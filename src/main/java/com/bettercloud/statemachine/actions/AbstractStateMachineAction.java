@@ -23,6 +23,7 @@ public abstract class AbstractStateMachineAction implements StateMachineAction {
 
     @Override
     public void execute(StateContext<String, String> context) {
+        context.getExtendedState().getVariables().put(state, true);
         try {
             safeExecute(context);
         } catch (Exception e) {
