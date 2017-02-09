@@ -1,10 +1,5 @@
 package com.bettercloud.config;
 
-import com.bettercloud.statemachine.Events;
-import com.bettercloud.statemachine.actions.CompletionAction;
-import com.bettercloud.statemachine.actions.EnrichmentAction;
-import com.bettercloud.statemachine.actions.ExecutionAction;
-import com.bettercloud.statemachine.actions.ValidationAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,34 +16,6 @@ import java.util.Optional;
 @Slf4j
 @Configuration
 public class StateMachineConfig extends StateMachineConfigurerAdapter<String, String> {
-
-    @Bean
-    public ValidationAction validationAction() {
-        return (stateContext) -> {
-            stateContext.getStateMachine().sendEvent(Events.FINISHED);
-        };
-    }
-
-    @Bean
-    public EnrichmentAction enrichmentAction() {
-        return (stateContext) -> {
-            stateContext.getStateMachine().sendEvent(Events.FINISHED);
-        };
-    }
-
-    @Bean
-    public ExecutionAction executionAction() {
-        return (stateContext) -> {
-            stateContext.getStateMachine().sendEvent(Events.FINISHED);
-        };
-    }
-
-    @Bean
-    public CompletionAction completionAction() {
-        return (stateContext) -> {
-            stateContext.getStateMachine().sendEvent(Events.FINISHED);
-        };
-    }
 
     @Bean
     public StateMachineListener<String, String> listener() {
