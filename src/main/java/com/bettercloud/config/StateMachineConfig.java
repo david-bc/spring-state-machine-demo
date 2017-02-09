@@ -1,59 +1,49 @@
 package com.bettercloud.config;
 
-import com.bettercloud.statemachine.Events;
-import com.bettercloud.statemachine.States;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.statemachine.config.EnableStateMachine;
+import org.springframework.statemachine.ExtendedState;
+import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
-import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
-import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
-import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 import org.springframework.statemachine.listener.StateMachineListener;
 import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.state.State;
 
 import java.util.Optional;
 
+import static com.bettercloud.statemachine.States.STATE_1;
+import static com.bettercloud.statemachine.States.STATE_2;
+
 /**
  * Created by davidesposito on 2/8/17.
  */
 @Slf4j
 @Configuration
-@Scope("prototype")
-@EnableStateMachine
 public class StateMachineConfig extends StateMachineConfigurerAdapter<String, String> {
 
-    @Override
-    public void configure(StateMachineConfigurationConfigurer<String, String> config)
-            throws Exception {
-        config
-                .withConfiguration()
-                .autoStartup(false)
-                .listener(listener());
+    @Bean
+    @Qualifier("state1Action")
+    public Action<String, String> state1Action() {
+        return stateAction(STATE_1);
     }
 
-    @Override
-    public void configure(StateMachineStateConfigurer<String, String> states)
-            throws Exception {
-        states
-                .withStates()
-                .initial(States.STATE_1)
-                .states(States.ALL_STATES);
+    @Bean
+    @Qualifier("state2Action")
+    public Action<String, String> state2Action() {
+        return stateAction(STATE_2);
     }
 
-    @Override
-    public void configure(StateMachineTransitionConfigurer<String, String> transitions)
-            throws Exception {
-        transitions
-                .withExternal()
-                .source(States.STATE_1).target(States.STATE_2).event(Events.EVENT_1)
-                .and()
-                .withExternal()
-                .source(States.STATE_2).target(States.STATE_1).event(Events.EVENT_2);
+    private Action<String, String> stateAction(String state) {
+        return (stateContext) -> {
+            System.out.println(state);
+            ExtendedState extendedState = stateContext.getExtendedState();
+            Integer count = Optional.ofNullable(extendedState.get(state, Integer.class)).orElse(0);
+            extendedState.getVariables().put(state, count + 1);
+        };
     }
+
 
     @Bean
     public StateMachineListener<String, String> listener() {

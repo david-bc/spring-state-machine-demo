@@ -1,18 +1,20 @@
 package com.bettercloud;
 
+import com.bettercloud.services.StateMachineProviderService;
 import com.bettercloud.statemachine.Events;
 import com.bettercloud.statemachine.States;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.statemachine.StateMachine;
+import org.springframework.statemachine.config.EnableStateMachine;
 
 import java.util.Collection;
 
 @Slf4j
+@EnableStateMachine
 @SpringBootApplication
 public class Application {
 
@@ -20,13 +22,14 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 	}
 
-	@Autowired private StateMachine<String, String> stateMachine1;
-	@Autowired private StateMachine<String, String> stateMachine2;
+	private StateMachine<String, String> sm1;
+	private StateMachine<String, String> sm2;
 
 	@Bean
-	public CommandLineRunner stateMachineRunner() {
+	public CommandLineRunner stateMachineRunner(StateMachineProviderService stateMachineProviderService) {
 		return (args) -> {
-			StateMachine<String, String> stateMachine = stateMachine1;
+			StateMachine<String, String> stateMachine = stateMachineProviderService.get();
+			sm1 = stateMachine;
 
 			stateMachine.start();
 			stateMachine.sendEvent(Events.EVENT_1);
@@ -50,9 +53,10 @@ public class Application {
 	}
 
 	@Bean
-	public CommandLineRunner stateMachineRunner2() {
+	public CommandLineRunner stateMachineRunner2(StateMachineProviderService stateMachineProviderService) {
 		return (args) -> {
-			StateMachine<String, String> stateMachine = stateMachine2;
+			StateMachine<String, String> stateMachine = stateMachineProviderService.get();
+			sm2 = stateMachine;
 
 			Thread.sleep(1000L);
 
@@ -77,7 +81,8 @@ public class Application {
 	public CommandLineRunner killerRunner() {
 		return (args) -> {
 			new Thread(() -> {
-				while (!stateMachine1.isComplete() || !stateMachine2.isComplete());
+				while (sm1 == null || sm2 == null);
+				while (!sm1.isComplete() || !sm2.isComplete());
 				System.exit(0);
 			}).start();
 		};
