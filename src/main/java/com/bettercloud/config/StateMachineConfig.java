@@ -37,10 +37,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<String, St
 
     private Action<String, String> stateAction(String state) {
         return (stateContext) -> {
-            System.out.println(state);
-            ExtendedState extendedState = stateContext.getExtendedState();
-            Integer count = Optional.ofNullable(extendedState.get(state, Integer.class)).orElse(0);
-            extendedState.getVariables().put(state, count + 1);
+            // no-op
         };
     }
 

@@ -11,88 +11,165 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.EnableStateMachine;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @EnableStateMachine
 @SpringBootApplication
 public class Application {
 
+    private static final int LAPS_COUNT = 40000;
+
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
 
-	private StateMachine<String, String> sm1;
-	private StateMachine<String, String> sm2;
+    /*
+        Builder Timer:
+            StartTime: 1486621495480
+            EndTime: 1486621499284
+            Duration: 3804
+            Laps: 120000
+                max: 122
+                min: 0
+                avg: 0.0317
+                laps/sec 31545.741324921135
+     */
+    @Bean
+    public CommandLineRunner stateMachineRunner2(StateMachineProviderService stateMachineProviderService) {
+        return (args) -> {
+            int iters = LAPS_COUNT * 3;
+            Timer timer = new Timer(iters);
+            timer.start();
+            for (int i=0;i<iters;i++) {
+                stateMachineProviderService.get();
+                timer.lap();
+            }
+            timer.stop();
+            System.out.println("\n\nBuilder Timer:");
+            timer.print();
+        };
+    }
 
-	@Bean
-	public CommandLineRunner stateMachineRunner(StateMachineProviderService stateMachineProviderService) {
-		return (args) -> {
-			StateMachine<String, String> stateMachine = stateMachineProviderService.get();
-			sm1 = stateMachine;
+    /*
+        Build and Execution Timer:
+            StartTime: 1486621499309
+            EndTime: 1486621502107
+            Duration: 2798
+            Laps: 40000
+                max: 107
+                min: 0
+                avg: 0.06995
+                laps/sec 14295.925661186562
+     */
+    @Bean
+    public CommandLineRunner stateMachineRunner(StateMachineProviderService stateMachineProviderService) {
+        return (args) -> {
+            Timer timer = new Timer(LAPS_COUNT);
+            timer.start();
+            for (int i=0;i<LAPS_COUNT;i++) {
+                StateMachine<String, String> stateMachine = stateMachineProviderService.get();
 
-			stateMachine.start();
-			stateMachine.sendEvent(Events.EVENT_1);
-			stateMachine.sendEvent(Events.EVENT_2);
-			stateMachine.sendEvent(Events.EVENT_1);
+                for (int j=0;j<10;j++) {
+                    stateMachine.sendEvent(Events.EVENT_1);
+                    stateMachine.sendEvent(Events.EVENT_2);
+                }
 
-			stateMachine.stop();
+                stateMachine.stop();
 
-			print(stateMachine);
+                timer.lap();
+            }
+            timer.stop();
+            System.out.println("\n\nBuild and Execution Timer:");
+            timer.print();
+        };
+    }
 
-			Collection<String> stateNames = stateMachine.getState().getIds();
-			if (stateNames.size() != 1 || !stateNames.contains(States.STATE_2)) {
-				throw new RuntimeException();
-			}
-			Integer state1Count = stateMachine.getExtendedState().get(States.STATE_1, Integer.class);
-			Integer state2Count = stateMachine.getExtendedState().get(States.STATE_2, Integer.class);
-			if (state1Count != 2 || state2Count != 2) {
-				throw new RuntimeException();
-			}
-		};
-	}
+    /*
+        Execution Timer:
+            StartTime: 1486621599155
+            EndTime: 1486621602840
+            Duration: 3685
+            Laps: 40000
+                max: 54
+                min: 0
+                avg: 0.0921
+                laps/sec 10857.763300760043
+     */
+    @Bean
+    public CommandLineRunner stateMachineRunner3(StateMachineProviderService stateMachineProviderService) {
+        return (args) -> {
+            int iters = LAPS_COUNT;
+            Timer timer = new Timer(iters);
+            StateMachine<String, String> stateMachine = stateMachineProviderService.get();
+            timer.start();
+            stateMachine.start();
+            for (int i=0;i<iters;i++) {
+                stateMachine.sendEvent(Events.EVENT_1);
+                stateMachine.sendEvent(Events.EVENT_2);
 
-	@Bean
-	public CommandLineRunner stateMachineRunner2(StateMachineProviderService stateMachineProviderService) {
-		return (args) -> {
-			StateMachine<String, String> stateMachine = stateMachineProviderService.get();
-			sm2 = stateMachine;
+                timer.lap();
+            }
+            stateMachine.stop();
+            timer.stop();
+            System.out.println("\n\nExecution Timer:");
+            timer.print();
+        };
+    }
 
-			Thread.sleep(1000L);
+    public static class Timer {
+        private long startTime = System.currentTimeMillis();
+        private long lapStartTime = System.currentTimeMillis();
+        private List<Long> laps;
+        private long endTime = System.currentTimeMillis();
 
-			stateMachine.start();
-			stateMachine.stop();
+        public Timer(int size) {
+            laps = new ArrayList<>(size);
+        }
 
-			print(stateMachine);
+        public void start() {
+            startTime = System.currentTimeMillis();
+            lapStartTime = startTime;
+        }
 
-			Collection<String> stateNames = stateMachine.getState().getIds();
-			if (stateNames.size() != 1 || !stateNames.contains(States.STATE_1)) {
-				throw new RuntimeException();
-			}
-			Integer state1Count = stateMachine.getExtendedState().get(States.STATE_1, Integer.class);
-			Integer state2Count = stateMachine.getExtendedState().get(States.STATE_2, Integer.class);
-			if (state1Count != 1 || state2Count != null) {
-				throw new RuntimeException();
-			}
-		};
-	}
+        public void lap() {
+            long newLap = System.currentTimeMillis();
+            laps.add(newLap - lapStartTime);
+            lapStartTime = newLap;
+        }
 
-	@Bean
-	public CommandLineRunner killerRunner() {
-		return (args) -> {
-			new Thread(() -> {
-				while (sm1 == null || sm2 == null);
-				while (!sm1.isComplete() || !sm2.isComplete());
-				System.exit(0);
-			}).start();
-		};
-	}
+        public void stop() {
+            endTime = System.currentTimeMillis();
+        }
 
-	private void print(StateMachine<String, String> sm) {
-		log.info("id={} complete={} vars={}",
-				sm.getUuid().toString(),
-				sm.isComplete(),
-				sm.getExtendedState().getVariables().toString()
-		);
-	}
+        public void clear() {
+            laps.clear();
+        }
+
+        public void print() {
+            System.out.println(this.toString());
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("StartTime: ").append(this.startTime);
+            sb.appendCodePoint('\n');
+            sb.append("EndTime: ").append(this.endTime);
+            sb.appendCodePoint('\n');
+            sb.append("Duration: ").append(this.endTime - this.startTime);
+            sb.appendCodePoint('\n');
+            sb.append("Laps: ").append(this.laps.size());
+            sb.append("\n\tmax: ").append(laps.stream().max((a,b) -> a.compareTo(b)).orElse(0L));
+            sb.append("\n\tmin: ").append(laps.stream().min((a,b) -> a.compareTo(b)).orElse(0L));
+            double avg = laps.stream().map(longNum -> (double)longNum).collect(Collectors.reducing((a, b) -> a + b)).orElse(1.0) / laps.size();
+            sb.append("\n\tavg: ").append(avg);
+            sb.append("\n\tlaps/sec ").append(1000.0/avg);
+//			sb.append("\n\t").append(Joiner.on(", ").join(laps));
+            return sb.toString();
+        }
+    }
 }

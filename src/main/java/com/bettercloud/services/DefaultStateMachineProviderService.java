@@ -19,16 +19,14 @@ import java.util.UUID;
 @Service
 public class DefaultStateMachineProviderService implements StateMachineProviderService {
 
-    private final StateMachineListener<String, String> stateMachineListener;
     private final BeanFactory beanFactory;
 
     private final Action<String, String> state1Action;
     private final Action<String, String> state2Action;
 
-    public DefaultStateMachineProviderService(StateMachineListener<String, String> stateMachineListener, BeanFactory beanFactory,
+    public DefaultStateMachineProviderService(BeanFactory beanFactory,
                                               @Qualifier("state1Action") Action<String, String> state1Action,
                                               @Qualifier("state2Action")Action<String, String> state2Action) {
-        this.stateMachineListener = stateMachineListener;
         this.beanFactory = beanFactory;
         this.state1Action = state1Action;
         this.state2Action = state2Action;
@@ -46,7 +44,6 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
         builder.configureConfiguration()
                 .withConfiguration()
                 .autoStartup(false)
-                .listener(stateMachineListener)
                 .machineId(Optional.ofNullable(id).orElse(UUID.randomUUID()).toString())
                 .beanFactory(beanFactory);
 
