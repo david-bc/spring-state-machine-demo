@@ -2,10 +2,12 @@ package com.bettercloud.services;
 
 import com.bettercloud.statemachine.Events;
 import com.bettercloud.statemachine.States;
+import com.bettercloud.statemachine.actions.CompletionAction;
+import com.bettercloud.statemachine.actions.EnrichmentAction;
+import com.bettercloud.statemachine.actions.ExecutionAction;
+import com.bettercloud.statemachine.actions.ValidationAction;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.statemachine.StateMachine;
-import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.StateMachineBuilder;
 import org.springframework.statemachine.listener.StateMachineListener;
 import org.springframework.stereotype.Service;
@@ -22,16 +24,20 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
     private final StateMachineListener<String, String> stateMachineListener;
     private final BeanFactory beanFactory;
 
-    private final Action<String, String> state1Action;
-    private final Action<String, String> state2Action;
+    private final ValidationAction validationAction;
+    private final EnrichmentAction enrichmentAction;
+    private final ExecutionAction executionAction;
+    private final CompletionAction completionAction;
 
     public DefaultStateMachineProviderService(StateMachineListener<String, String> stateMachineListener, BeanFactory beanFactory,
-                                              @Qualifier("state1Action") Action<String, String> state1Action,
-                                              @Qualifier("state2Action")Action<String, String> state2Action) {
+                                              ValidationAction validationAction, EnrichmentAction enrichmentAction,
+                                              ExecutionAction executionAction, CompletionAction completionAction) {
         this.stateMachineListener = stateMachineListener;
         this.beanFactory = beanFactory;
-        this.state1Action = state1Action;
-        this.state2Action = state2Action;
+        this.validationAction = validationAction;
+        this.enrichmentAction = enrichmentAction;
+        this.executionAction = executionAction;
+        this.completionAction = completionAction;
     }
 
     @Override
@@ -52,18 +58,33 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
 
         builder.configureStates()
                 .withStates()
-                .initial(States.STATE_1)
-                .stateDo(States.STATE_1, state1Action)
-                .stateDo(States.STATE_2, state2Action);
+                .initial(States.VALIDATE)
+                .end(States.COMPLETE)
+                .stateDo(States.VALIDATE, validationAction)
+                .stateDo(States.ENRICH, enrichmentAction)
+                .stateDo(States.EXECUTE, executionAction)
+                .stateDo(States.COMPLETE, completionAction);
 
         builder.configureTransitions()
                 .withExternal()
-                .source(States.STATE_1).target(States.STATE_2)
-                    .event(Events.EVENT_1)
+                .source(States.VALIDATE).target(States.ENRICH).event(Events.FINISHED)
                 .and()
                 .withExternal()
-                .source(States.STATE_2).target(States.STATE_1)
-                    .event(Events.EVENT_2);
+                .source(States.VALIDATE).target(States.COMPLETE).event(Events.ERROR)
+                .and()
+                .withExternal()
+                .source(States.ENRICH).target(States.EXECUTE).event(Events.FINISHED)
+                .and()
+                .withExternal()
+                .source(States.ENRICH).target(States.COMPLETE).event(Events.ERROR)
+                .and()
+                .withExternal()
+                .source(States.EXECUTE).target(States.COMPLETE).event(Events.FINISHED)
+                .and()
+                .withExternal()
+                .source(States.EXECUTE).target(States.COMPLETE).event(Events.ERROR)
+                .and()
+                .withExit().source(States.COMPLETE);
 
         StateMachine<String, String> sm = builder.build();
 

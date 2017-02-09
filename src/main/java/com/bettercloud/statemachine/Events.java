@@ -5,6 +5,6 @@ package com.bettercloud.statemachine;
  */
 public class Events {
 
-    public static final String EVENT_1 = "EVENT_1";
-    public static final String EVENT_2 = "EVENT_2";
+    public static final String FINISHED = "FINISHED";
+    public static final String ERROR = "ERROR";
 }

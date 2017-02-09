@@ -11,11 +11,12 @@ import java.util.Set;
  */
 public class States {
 
-    public static final String STATE_1 = "STATE_1";
-    public static final String STATE_2 = "STATE_2";
+    public static final String VALIDATE = "VALIDATE";
+    public static final String ENRICH = "ENRICH";
+    public static final String EXECUTE = "EXECUTE";
+    public static final String COMPLETE = "COMPLETE";
 
     public static final Set<String> ALL_STATES = Collections.unmodifiableSet(Sets.newHashSet(
-            STATE_1,
-            STATE_2
+            VALIDATE, ENRICH, EXECUTE, COMPLETE
     ));
 }
