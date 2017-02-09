@@ -1,9 +1,9 @@
 package com.bettercloud.services;
 
+import com.bettercloud.repositories.StateMachineContextRepository;
 import com.bettercloud.statemachine.StateMachineTransition;
 import com.bettercloud.statemachine.States;
 import com.bettercloud.statemachine.actions.StateMachineAction;
-import com.bettercloud.statemachine.actions.impl.BasicPersistanceAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.statemachine.StateMachine;
@@ -11,6 +11,7 @@ import org.springframework.statemachine.config.StateMachineBuilder;
 import org.springframework.statemachine.config.configurers.ExternalTransitionConfigurer;
 import org.springframework.statemachine.config.configurers.StateConfigurer;
 import org.springframework.statemachine.listener.StateMachineListener;
+import org.springframework.statemachine.persist.StateMachinePersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,16 +27,20 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
 
     private final StateMachineListener<String, String> stateMachineListener;
     private final BeanFactory beanFactory;
-    private final BasicPersistanceAction basicPersistanceAction;
+    private final StateMachineContextRepository stateMachineContextRepository;
+    private final StateMachinePersister<String, String, UUID> stateMachinePersister;
 
     private final List<StateMachineAction> stateMachineActionBeans;
 
     public DefaultStateMachineProviderService(StateMachineListener<String, String> stateMachineListener,
                                               BeanFactory beanFactory,
-                                              BasicPersistanceAction basicPersistanceAction, List<StateMachineAction> stateMachineActionBeans) {
+                                              StateMachineContextRepository stateMachineContextRepository,
+                                              StateMachinePersister<String, String, UUID> stateMachinePersister,
+                                              List<StateMachineAction> stateMachineActionBeans) {
         this.stateMachineListener = stateMachineListener;
         this.beanFactory = beanFactory;
-        this.basicPersistanceAction = basicPersistanceAction;
+        this.stateMachineContextRepository = stateMachineContextRepository;
+        this.stateMachinePersister = stateMachinePersister;
         this.stateMachineActionBeans = stateMachineActionBeans;
     }
 
@@ -78,6 +83,14 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
         }
 
         StateMachine<String, String> sm = builder.build();
+
+        try {
+            if (stateMachineContextRepository.read(id) != null) {
+                stateMachinePersister.restore(sm, id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return sm;
     }

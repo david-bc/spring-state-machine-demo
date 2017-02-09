@@ -42,14 +42,19 @@ public class DefaultExecutionAction extends PersistedStateMachineAction implemen
 
     @Override
     protected void safeExecute(StateContext<String, String> context) {
-        Integer loop = Optional.ofNullable(context.getExtendedState().get("loop", Integer.class)).orElse(0);
-        String event = FINISHED;
-        if (loop > 0) {
-            context.getExtendedState().getVariables().put("loop", loop - 1);
-            Integer currCount = Optional.ofNullable(context.getExtendedState().get("loopCount", Integer.class)).orElse(0);
-            context.getExtendedState().getVariables().put("loopCount", currCount + 1);
-            event = REPEAT;
+        Boolean pause = Optional.ofNullable(context.getExtendedState().get("pause", Boolean.class)).orElse(false);
+        if (pause) {
+            log.info("Pausing: " + context.getStateMachine().getId());
+        } else {
+            Integer loop = Optional.ofNullable(context.getExtendedState().get("loop", Integer.class)).orElse(0);
+            String event = FINISHED;
+            if (loop > 0) {
+                context.getExtendedState().getVariables().put("loop", loop - 1);
+                Integer currCount = Optional.ofNullable(context.getExtendedState().get("loopCount", Integer.class)).orElse(0);
+                context.getExtendedState().getVariables().put("loopCount", currCount + 1);
+                event = REPEAT;
+            }
+            context.getStateMachine().sendEvent(event);
         }
-        context.getStateMachine().sendEvent(event);
     }
 }

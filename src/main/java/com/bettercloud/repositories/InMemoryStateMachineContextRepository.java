@@ -24,4 +24,9 @@ public class InMemoryStateMachineContextRepository implements StateMachineContex
     public StateMachineContext<String, String> read(UUID contextObj) throws Exception {
         return contextMap.get(contextObj);
     }
+
+    @Override
+    public StateMachineContext<String, String> remove(UUID id) {
+        return null;
+    }
 }

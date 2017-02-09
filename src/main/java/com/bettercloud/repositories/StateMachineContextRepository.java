@@ -1,5 +1,6 @@
 package com.bettercloud.repositories;
 
+import org.springframework.statemachine.StateMachineContext;
 import org.springframework.statemachine.StateMachinePersist;
 
 import java.util.UUID;
@@ -9,4 +10,5 @@ import java.util.UUID;
  */
 public interface StateMachineContextRepository extends StateMachinePersist<String, String, UUID> {
 
+    StateMachineContext<String, String> remove(UUID id);
 }
