@@ -10,6 +10,8 @@ import java.util.List;
  */
 public interface StateMachineAction extends Action<String, String> {
 
+    boolean isPausable();
+
     String getState();
 
     List<StateMachineTransition> getTransitions();

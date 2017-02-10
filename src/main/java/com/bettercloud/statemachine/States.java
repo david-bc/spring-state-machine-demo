@@ -15,8 +15,9 @@ public class States {
     public static final String ENRICH = "ENRICH";
     public static final String EXECUTE = "EXECUTE";
     public static final String COMPLETE = "COMPLETE";
+    public static final String RESTART = "RESTART";
 
     public static final Set<String> ALL_STATES = Collections.unmodifiableSet(Sets.newHashSet(
-            VALIDATE, ENRICH, EXECUTE, COMPLETE
+            VALIDATE, ENRICH, EXECUTE, COMPLETE, RESTART
     ));
 }

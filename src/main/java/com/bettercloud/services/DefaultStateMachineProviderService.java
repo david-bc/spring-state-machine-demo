@@ -77,6 +77,12 @@ public class DefaultStateMachineProviderService implements StateMachineProviderS
                             .withExternal()
                             .source(transition.getState()).target(transition.getTarget()).event(transition.getEvent());
                 }
+                if (action.isPausable()) {
+                    transitionConfigurer
+                            .and()
+                            .withExternal()
+                            .source(action.getState()).target(action.getState()).event(States.RESTART);
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

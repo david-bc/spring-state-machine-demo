@@ -41,6 +41,11 @@ public class DefaultExecutionAction extends PersistedStateMachineAction implemen
     }
 
     @Override
+    public boolean isPausable() {
+        return true;
+    }
+
+    @Override
     protected void safeExecute(StateContext<String, String> context) {
         Boolean pause = Optional.ofNullable(context.getExtendedState().get("pause", Boolean.class)).orElse(false);
         if (pause) {

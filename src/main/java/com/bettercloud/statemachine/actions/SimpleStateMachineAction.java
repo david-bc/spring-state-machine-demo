@@ -22,6 +22,11 @@ public abstract class SimpleStateMachineAction implements StateMachineAction {
     private final List<StateMachineTransition> transitions;
 
     @Override
+    public boolean isPausable() {
+        return false;
+    }
+
+    @Override
     public void execute(StateContext<String, String> context) {
         context.getExtendedState().getVariables().put(state, true);
         log.info("Running: {}", state);

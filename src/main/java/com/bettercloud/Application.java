@@ -42,77 +42,77 @@ public class Application {
     private final AtomicBoolean loopRunComplete = new AtomicBoolean(false);
     private final AtomicBoolean pauseRunComplete = new AtomicBoolean(false);
 
-//    @Bean
-//    public CommandLineRunner success(ExecutionService executionService) {
-//        return (args) -> {
-//            HashMap<String, Object> params = Maps.newHashMap();
-//            StateMachine<String, String> stateMachine = executionService.accept(params);
-//
-//            Thread.sleep(500L);
-//
-//            print(stateMachine);
-//
-//            assertEquals(true, stateMachine.isComplete(), "sm not complete");
-//            ExtendedState extendedState = stateMachine.getExtendedState();
-//            List<String> executed = Lists.newArrayList(VALIDATE, ENRICH, EXECUTE, COMPLETE);
-//            List<String> skipped = Lists.newArrayList();
-//
-//            executed.forEach(state -> assertEquals(true, extendedState.get(state, Boolean.class), state + " didn't execute"));
-//            skipped.forEach(state -> assertEquals(null, extendedState.get(state, Boolean.class), state + " was execute"));
-//
-//            successRunComplete.set(true);
-//        };
-//    }
-//
-//    @Bean
-//    public CommandLineRunner fail(ExecutionService executionService) {
-//        return (args) -> {
-//            HashMap<String, Object> params = Maps.newHashMap();
-//            params.put("fail", true);
-//            StateMachine<String, String> stateMachine = executionService.accept(params);
-//
-//            Thread.sleep(500L);
-//
-//            print(stateMachine);
-//
-//            assertEquals(true, stateMachine.isComplete(), "sm not complete");
-//            ExtendedState extendedState = stateMachine.getExtendedState();
-//            List<String> executed = Lists.newArrayList(VALIDATE, ENRICH, COMPLETE);
-//            List<String> skipped = Lists.newArrayList(EXECUTE);
-//
-//            executed.forEach(state -> assertEquals(true, extendedState.get(state, Boolean.class), state + " didn't execute"));
-//            skipped.forEach(state -> assertEquals(null, extendedState.get(state, Boolean.class), state + " was execute"));
-//
-//            failRunComplete.set(true);
-//        };
-//    }
-//
-//    @Bean
-//    public CommandLineRunner loop(ExecutionService executionService) {
-//        return (args) -> {
-//            int loopCount = 5;
-//            HashMap<String, Object> params = Maps.newHashMap();
-//            params.put("loop", loopCount);
-//            StateMachine<String, String> stateMachine = executionService.accept(params);
-//
-//            stateMachine.start();
-//
-//            Thread.sleep(500L);
-//
-//            print(stateMachine);
-//
-//            assertEquals(true, stateMachine.isComplete(), "sm not complete");
-//            ExtendedState extendedState = stateMachine.getExtendedState();
-//            List<String> executed = Lists.newArrayList(VALIDATE, ENRICH, EXECUTE, COMPLETE);
-//            List<String> skipped = Lists.newArrayList();
-//
-//            executed.forEach(state -> assertEquals(true, extendedState.get(state, Boolean.class), state + " didn't execute"));
-//            skipped.forEach(state -> assertEquals(null, extendedState.get(state, Boolean.class), state + " was execute"));
-//            assertEquals(loopCount, extendedState.get("loopCount", Integer.class), "Did not execute loop properly");
-//
-//            loopRunComplete.set(true);
-//        };
-//    }
+    @Bean
+    public CommandLineRunner success(ExecutionService executionService) {
+        return (args) -> {
+            HashMap<String, Object> params = Maps.newHashMap();
+            StateMachine<String, String> stateMachine = executionService.accept(params);
+
+            Thread.sleep(500L);
+
+            print(stateMachine);
+
+            assertEquals(true, stateMachine.isComplete(), "sm not complete");
+            ExtendedState extendedState = stateMachine.getExtendedState();
+            List<String> executed = Lists.newArrayList(VALIDATE, ENRICH, EXECUTE, COMPLETE);
+            List<String> skipped = Lists.newArrayList();
+
+            executed.forEach(state -> assertEquals(true, extendedState.get(state, Boolean.class), state + " didn't execute"));
+            skipped.forEach(state -> assertEquals(null, extendedState.get(state, Boolean.class), state + " was execute"));
+
+            successRunComplete.set(true);
+        };
+    }
+
+    @Bean
+    public CommandLineRunner fail(ExecutionService executionService) {
+        return (args) -> {
+            HashMap<String, Object> params = Maps.newHashMap();
+            params.put("fail", true);
+            StateMachine<String, String> stateMachine = executionService.accept(params);
+
+            Thread.sleep(500L);
+
+            print(stateMachine);
+
+            assertEquals(true, stateMachine.isComplete(), "sm not complete");
+            ExtendedState extendedState = stateMachine.getExtendedState();
+            List<String> executed = Lists.newArrayList(VALIDATE, ENRICH, COMPLETE);
+            List<String> skipped = Lists.newArrayList(EXECUTE);
+
+            executed.forEach(state -> assertEquals(true, extendedState.get(state, Boolean.class), state + " didn't execute"));
+            skipped.forEach(state -> assertEquals(null, extendedState.get(state, Boolean.class), state + " was execute"));
+
+            failRunComplete.set(true);
+        };
+    }
+
+    @Bean
+    public CommandLineRunner loop(ExecutionService executionService) {
+        return (args) -> {
+            int loopCount = 5;
+            HashMap<String, Object> params = Maps.newHashMap();
+            params.put("loop", loopCount);
+            StateMachine<String, String> stateMachine = executionService.accept(params);
+
+            stateMachine.start();
+
+            Thread.sleep(500L);
+
+            print(stateMachine);
+
+            assertEquals(true, stateMachine.isComplete(), "sm not complete");
+            ExtendedState extendedState = stateMachine.getExtendedState();
+            List<String> executed = Lists.newArrayList(VALIDATE, ENRICH, EXECUTE, COMPLETE);
+            List<String> skipped = Lists.newArrayList();
+
+            executed.forEach(state -> assertEquals(true, extendedState.get(state, Boolean.class), state + " didn't execute"));
+            skipped.forEach(state -> assertEquals(null, extendedState.get(state, Boolean.class), state + " was execute"));
+            assertEquals(loopCount, extendedState.get("loopCount", Integer.class), "Did not execute loop properly");
+
+            loopRunComplete.set(true);
+        };
+    }
 
     @Bean
     public CommandLineRunner pause(ExecutionService executionService, StateMachineProviderService stateMachineProviderService) {
@@ -121,8 +121,6 @@ public class Application {
             params.put("pause", true);
             StateMachine<String, String> stateMachine = executionService.accept(params);
 
-            System.out.println("\n\n\nPAUSE\n\n\n");
-
             stateMachine.start();
 
             Thread.sleep(500L);
@@ -130,13 +128,12 @@ public class Application {
             stateMachine = stateMachineProviderService.get(UUID.fromString(stateMachine.getId()));
             stateMachine.getExtendedState().getVariables().put("pause", false);
 
-            System.out.println("\n\n\nPAUSE\n\n\n");
-
             stateMachine.start();
-
-            print(stateMachine);
+            stateMachine.sendEvent(States.RESTART);
 
             Thread.sleep(500L);
+
+            print(stateMachine);
 
             assertEquals(true, stateMachine.isComplete(), "sm not complete");
             ExtendedState extendedState = stateMachine.getExtendedState();
