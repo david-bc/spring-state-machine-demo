@@ -33,6 +33,7 @@ dependencies {
     compile('org.projectlombok:lombok')
     compile('com.google.guava:guava:19.0')
     compile('org.javatuples:javatuples:1.2')
+	compile('com.fasterxml.jackson.core:jackson-databind:2.8.6')
 
 	compile('org.springframework.boot:spring-boot-starter-web')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
